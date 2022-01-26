@@ -1,0 +1,4 @@
+framework module HiWifiCoreCrypto {
+  header "HiWifiCoreCrypto-Swift.h"
+  requires objc
+}

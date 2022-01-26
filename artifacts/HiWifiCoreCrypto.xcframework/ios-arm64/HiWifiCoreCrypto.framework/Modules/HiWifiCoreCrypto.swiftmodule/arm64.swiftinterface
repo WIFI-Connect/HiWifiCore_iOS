@@ -1,0 +1,13 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.4.2 (swiftlang-1205.0.28.2 clang-1205.0.19.57)
+// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name HiWifiCoreCrypto
+import CryptoKit
+import CryptoSwift
+import Foundation
+import Swift
+public class HiWfiCrypto {
+  public init()
+  public func encrypt(string: Swift.String) throws -> Swift.String
+  public func decrypt(string: Swift.String) throws -> Swift.String
+  @objc deinit
+}
