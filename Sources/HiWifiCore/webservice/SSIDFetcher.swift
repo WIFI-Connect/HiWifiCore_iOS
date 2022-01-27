@@ -73,13 +73,13 @@ internal class SSIDFetcher {
                 } else {
                     
                     let errorCode = json["code"] as? String ?? "json error"
-                    print(errorCode)
+                    Logger.log("result code: \(errorCode)")
                     completion(false)
                     
                 }
                 
             } catch let parsingError {
-                print(parsingError)
+                Logger.log("JSON parse error:\(parsingError)")
                 completion(false)
             }
                         

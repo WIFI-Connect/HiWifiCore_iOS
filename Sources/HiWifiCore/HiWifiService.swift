@@ -93,16 +93,16 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
             self.setupAfterLocatinAuthorization()
         } else if authorizationStatus == .notDetermined {
             self.locationAuthorizationRequested = true
-            print("request when in use authorization...")
+//            print("request when in use authorization...")
             self.locationManager?.requestWhenInUseAuthorization()
         } else if authorizationStatus == .authorizedWhenInUse {
             self.locationAuthorizationRequested = true
             self.locationAuthorizationPromptShown = false
             NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
-            print("request always authorization...")
+//            print("request always authorization...")
             self.locationManager?.requestAlwaysAuthorization()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                print("check for prompt!")
+//                print("check for prompt!")
                 if self.locationAuthorizationPromptShown == false {
                     self.locationAuthorizationRequested = false
                     self.setupCallback!(.locationAuthorizationMissing)
@@ -118,7 +118,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     }
 
     @objc func appWillResignActive() {
-        print("App will resign active!")
+//        print("App will resign active!")
         if self.locationAuthorizationRequested {
             NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
             self.locationAuthorizationPromptShown = true
@@ -127,7 +127,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     }
     
     @objc func appDidBecomeActive() {
-        print("App did become active!")
+//        print("App did become active!")
         if self.locationAuthorizationRequested {
             NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
             DispatchQueue.main.async {
@@ -189,11 +189,11 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
                 }
                 return true
             } catch {
-                print("Error loading file at \(fileURL): \(error)")
+                Logger.log("Error loading file at \(fileURL): \(error)")
                 return false
             }
         }
-        print("Could not load HiWifi Service configuration (\(configName!))")
+        Logger.log("Could not load HiWifi Service configuration (\(configName!))")
         return false
     }
     
@@ -226,7 +226,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     
     func wifiDidChange(status: NWPath.Status) {
                 
-        print("wifi did change: \(status)")
+        Logger.log("wifi did change: \(status)")
                 
         switch status {
             case .satisfied:
@@ -348,7 +348,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-         print("error:: \(error.localizedDescription)")
+        Logger.log("error: \(error.localizedDescription)")
 
         requestLocationTimoutTimer?.invalidate()
         requestLocationTimoutTimer = nil

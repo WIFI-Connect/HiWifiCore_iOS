@@ -64,14 +64,14 @@ internal class CoreDataManager {
                     }
                 }
             } else {
-                print("Could not create a new AccessPointObject in contect:\(privateContext)")
+                Logger.log("Could not create a new AccessPointObject in contect:\(privateContext)")
             }
         }
         persistentContainer.viewContext.performAndWait {
             do {
                 try persistentContainer.viewContext.save()
             } catch let error {
-                print(error)
+                Logger.log("Save context error:\(error)")
             }
         }
     }
@@ -108,7 +108,7 @@ internal class CoreDataManager {
                         }
                     }
                 } else {
-                    print("Could not create a new SSIDObject in contect:\(privateContext)")
+                    Logger.log("Could not create a new SSIDObject in contect:\(privateContext)")
                 }
             }
         }
@@ -116,7 +116,7 @@ internal class CoreDataManager {
             do {
                 try persistentContainer.viewContext.save()
             } catch let error {
-                print(error)
+                Logger.log("Save context error:\(error)")
             }
         }
         NSLog("save ssid list successful")
@@ -233,14 +233,14 @@ internal class CoreDataManager {
                 }
                 try privateContext.save()
             } catch let error {
-                print(error)
+                Logger.log("Save context error:\(error)")
             }
         }
         persistentContainer.viewContext.performAndWait {
             do {
                 try persistentContainer.viewContext.save()
             } catch let error {
-                print(error)
+                Logger.log("Save context error:\(error)")
             }
         }
     }
