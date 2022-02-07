@@ -12,7 +12,7 @@ This is the Swift Package that is needed to add the HiWifi service to an existin
   **Make sure version 1.0.2 or later of the package is used!**  
   The Swift package CryptoSwift 1.4.0 will be added automatically too.
 
-- Add the following capabilities unter **"Signing & Capabilities"** to your app target(s):  
+- Add the following capabilities at **"Signing & Capabilities"** to your app target(s):  
   **Access WiFi Information**, **Push Notifications**, **Background Modes > Location updates**
 
 - Add the following keys with a description to the Info.plist of your app:  
@@ -88,6 +88,6 @@ This is the Swift Package that is needed to add the HiWifi service to an existin
 
 - Check if you can build and run your app without any error messages on a real device.
 
-- If you are using the **HiWifiServiceConfig.json** file from the **HiWifiCore Demo** project check if your app sends a notification when you connect your device to a WiFi access point with the SSID "hiwifitest". **The access point needs internet access!**
+- If you are using the **HiWifiServiceConfig.json** file from the **HiWifiCore Demo** project check if your app sends a notification when you connect your device to a Wi-Fi access point with the SSID "hiwifitest". **The access point needs internet access!**
 
-- If your are using the provided custom **HiWifiServiceConfig.json** file check if your app sends a notification when you connect your device to a WiFi access point with any SSID configured in the GoLive Control Center for your app. **All access points need internet access!**
+- If your are using the provided custom **HiWifiServiceConfig.json** file check if your app sends a notification when you connect your device to a Wi-Fi access point with any SSID configured in the GoLive Control Center for your app. **All access points need internet access!**
