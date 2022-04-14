@@ -58,7 +58,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     internal static var pushEnabled = true
     internal static var usePasswordManager: Bool = false
     internal static var passwordManagerDisplayName: String = "HiWifi Netzwerk"
-    internal static var userHiWifiSSIDList: Bool = true
+    internal static var useHiWifiSSIDList: Bool = true
 
     public init(locationManager: CLLocationManager) {
         
@@ -137,7 +137,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     }
     
     private func setupAfterLocatinAuthorization() {
-        if HiWifiService.userHiWifiSSIDList {
+        if HiWifiService.useHiWifiSSIDList {
             getSSIDs { success in
                 self.resetCache()
                 if success && HiWifiService.usePasswordManager {
@@ -183,9 +183,9 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
                         }
                     }
                 }
-                if let userHiWifiSSIDList = json["userHiWifiSSIDList"] as? Bool {
-                    HiWifiService.userHiWifiSSIDList = userHiWifiSSIDList
-                    Logger.log("- userHiWifiSSIDList = \(userHiWifiSSIDList)")
+                if let useHiWifiSSIDList = json["useHiWifiSSIDList"] as? Bool {
+                    HiWifiService.useHiWifiSSIDList = useHiWifiSSIDList
+                    Logger.log("- useHiWifiSSIDList = \(useHiWifiSSIDList)")
                 }
                 return true
             } catch {
