@@ -48,7 +48,7 @@ class HotspotManager {
         var bssid = network.bssid
         bssid.checkLeadingZeros()
 
-        return bssid == "82:ce:b7:0f:bc:8c" // false //(bssid == "2e:91:ab:09:ab:73") || (bssid == "e2:28:6d:4b:d0:61") || (bssid == "e2:28:6d:4b:d0:60")
+        return false //(bssid == "2e:91:ab:09:ab:73") || (bssid == "e2:28:6d:4b:d0:61") || (bssid == "e2:28:6d:4b:d0:60")
 
         /*
          2e:91:ab:09:ab:73
@@ -60,7 +60,7 @@ class HotspotManager {
         
     class func registerLoginCallback() {
         
-        let options: [String: NSObject] = [kNEHotspotHelperOptionDisplayName : "Velmart Netzwork" as NSObject]
+        let options: [String: NSObject] = [kNEHotspotHelperOptionDisplayName : HiWifiService.passwordManagerDisplayName as NSObject]
         let queue: DispatchQueue = DispatchQueue(label: "WIFI-Connect-GmbH.HiWifi", attributes: DispatchQueue.Attributes.concurrent)
 
         Logger.log("Register hotspot helper...")
