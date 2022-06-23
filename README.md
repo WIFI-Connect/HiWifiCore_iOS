@@ -90,4 +90,4 @@ This is the Swift Package that is needed to add the HiWifi service to an existin
 
 - If you are using the **HiWifiServiceConfig.json** file from the **HiWifiCore Demo** project check if your app sends a notification when you connect your device to a Wi-Fi access point with the SSID "hiwifitest". **The access point needs internet access!**
 
-- If your are using the provided custom **HiWifiServiceConfig.json** file check if your app sends a notification when you connect your device to a Wi-Fi access point with any SSID configured in the GoLive Control Center for your app. **All access points need internet access!**
+- If your are using the provided custom **HiWifiServiceConfig.json** file check if your app sends a notification when you connect your device to a Wi-Fi access point with any SSID configured in the HIWIFI Pro Control Center [https://dashboard.hiwifipro.com/](https://dashboard.hiwifipro.com/) for your app. **All access points need internet access!**
