@@ -39,15 +39,12 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     private var locationAuthorizationPromptShown: Bool = false
     private var locationPermissionGranted: Bool = false
     
-    private var ssidList: [String] = []
+            var ssidList: [String] = []
     private var currentAccessPoint: AccessPointObject?
 
     private var lastStateWifiConnected = false
     
     private var resetCacheTimer: Timer? = nil
-    
-    private var deviceLocationCallback: ((_ location: CLLocationCoordinate2D?) -> Void)? = nil
-    private var requestLocationTimoutTimer: Timer? = nil
     
     private let wifiChangeLock = NSLock()
     private var searchNetworkInfo: NetworkInfo? = nil
@@ -59,6 +56,9 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     internal static var usePasswordManager: Bool = false
     internal static var passwordManagerDisplayName: String = "HiWifi Netzwerk"
     internal static var useHiWifiSSIDList: Bool = true
+    
+    internal static var ssidListLocation: CLLocation? = nil
+    internal static var ssidListRadius: Int = 0
 
     public init(locationManager: CLLocationManager) {
         
@@ -213,17 +213,6 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
         HotspotManager.registerWifi(ssid: ssid)
     }
     
-    internal func getDeviceLocation(completion: @escaping ((_ location: CLLocationCoordinate2D?) -> Void)) {
-        self.deviceLocationCallback = completion
-        self.requestLocationTimoutTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false, block: { Timer in
-            if self.deviceLocationCallback != nil {
-                self.deviceLocationCallback!(self.location)
-                self.deviceLocationCallback = nil
-            }
-        })
-        self.locationManager?.requestLocation()
-    }
-    
     func wifiDidChange(status: NWPath.Status) {
                 
         Logger.log("wifi did change: \(status)")
@@ -231,7 +220,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
         switch status {
             case .satisfied:
                 // We received a connect notification
-                startLocationSearch()
+                checkStartLocationSearch()
                 
             case .unsatisfied, .requiresConnection:
                 // We received a disconnect notification
@@ -254,7 +243,7 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
        }
     }
         
-    private func startLocationSearch() {
+    private func checkStartLocationSearch() {
         
         var startSearch = false
         wifiChangeLock.lock()
@@ -279,35 +268,63 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
         }
         wifiChangeLock.unlock()
         if  startSearch {
-            getCurrentLocation(completion: {location, error in
-                if location != nil {
-                    self.listener?.onUpdate(location: location, error: error)
-                } else if let error = error {
-                    self.listener?.onUpdate(location: location, error: error)
-                }
-                self.wifiChangeLock.lock()
-                if let networkInfo = WifiHelper.shared.getConnectedNetworkInfo(), networkInfo == self.searchNetworkInfo {
-                    Logger.log("New connection:\(self.searchNetworkInfo!)")
-                    self.connectedNetworkInfo = self.searchNetworkInfo;
-                    self.searchNetworkInfo = nil
-                } else if networkInfo == nil {
-                    Logger.log("Check disconnect in 5 seconds!")
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                        self.checkDisconnect()
+            // Is HiWifiCore running in HiWfiMode and do we have SSID list location and radius information and an unknown SSID?
+            if HiWifiService.application_uid == "HiWifiMode", HiWifiService.ssidListLocation != nil, HiWifiService.ssidListRadius > 0, ssidList.contains(networkInfo!.ssid) == false {
+                Logger.log("HiWifiMode with unknown SSID (\(networkInfo!.ssid)) ...")
+                // Get the current location ...
+                LocationManager.shared.getLocation { location, error in
+                    // ... to check if it is outside of the current region of the SSID list
+                    if location == nil || error != nil {
+                        Logger.log("getLocation error:\(error), location:\(location)")
+                    } else {
+                        Logger.log("old location:\(HiWifiService.ssidListLocation!.coordinate), new location:\(location!.coordinate), distance:\(location!.distance(from: HiWifiService.ssidListLocation!))")
                     }
-                } else if self.searchNetworkInfo != nil {
-                    Logger.log("Checked network \(self.searchNetworkInfo!), but now \(networkInfo!)!")
-                    self.searchNetworkInfo = nil
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    if error == nil, location != nil, location!.distance(from: HiWifiService.ssidListLocation!) > Double(HiWifiService.ssidListRadius) * 0.8 {
+                        // Update the SSID list for the new location
+                        Logger.log("Update SSID list for new location \(location!) ...")
+                        self.getSSIDs { success in
+                            self.startLocationSearch()
+                        }
+                    } else {
                         self.startLocationSearch()
                     }
                 }
-                self.wifiChangeLock.unlock()
-                Logger.log("Location Search finished!")
-            })
+            } else {
+                startLocationSearch()
+            }
         }
     }
 
+    private func startLocationSearch() {
+        getCurrentLocation(completion: {location, error in
+            if location != nil {
+                self.listener?.onUpdate(location: location, error: error)
+            } else if let error = error {
+                self.listener?.onUpdate(location: location, error: error)
+            }
+            self.wifiChangeLock.lock()
+            let networkInfo = WifiHelper.shared.getConnectedNetworkInfo()
+            if networkInfo == self.searchNetworkInfo {
+                Logger.log("New connection:\(self.searchNetworkInfo!)")
+                self.connectedNetworkInfo = self.searchNetworkInfo;
+                self.searchNetworkInfo = nil
+            } else if networkInfo == nil {
+                Logger.log("Check disconnect in 5 seconds!")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    self.checkDisconnect()
+                }
+            } else if self.searchNetworkInfo != nil {
+                Logger.log("Checked network \(self.searchNetworkInfo!), but now \(networkInfo!)!")
+                self.searchNetworkInfo = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self.checkStartLocationSearch()
+                }
+            }
+            self.wifiChangeLock.unlock()
+            Logger.log("Location Search finished!")
+        })
+    }
+    
     private func checkDisconnect() {
         self.wifiChangeLock.lock()
         Logger.log("Check disconnect status...")
@@ -333,30 +350,14 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
 
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 
-        requestLocationTimoutTimer?.invalidate()
-        requestLocationTimoutTimer = nil
-        
         let locValue = manager.location?.coordinate
         if locValue != nil {
             location = locValue
-        }
-        
-        if self.deviceLocationCallback != nil {
-            self.deviceLocationCallback!(locValue)
-            self.deviceLocationCallback = nil
         }
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         Logger.log("error: \(error.localizedDescription)")
-
-        requestLocationTimoutTimer?.invalidate()
-        requestLocationTimoutTimer = nil
-
-        if self.deviceLocationCallback != nil {
-            self.deviceLocationCallback!(nil)
-            self.deviceLocationCallback = nil
-        }
     }
     
     public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
@@ -412,15 +413,15 @@ public class HiWifiService : NSObject, CLLocationManagerDelegate, WifiObserver, 
     private func getSSIDs(completion: @escaping (_ success: Bool) -> Void) {
         Logger.log("loading ssid list...")
         self.ssidList = CoreDataManager.shared.fetchSSIDList()
-        
+
         if NetworkHelper.isConnectedToNetwork() {
             SSIDFetcher().execute(completion: { success in
                 Logger.log("SSID List fetched success: \(success)")
                 self.ssidList = CoreDataManager.shared.fetchSSIDList()
+                Logger.log("SSIDs:\(self.ssidList)")
                 completion(success)
             })
         }
-    
     }
     
     private func resetCache() {

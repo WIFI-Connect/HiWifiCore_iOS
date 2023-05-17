@@ -71,7 +71,15 @@ public class Logger : NSObject, MFMailComposeViewControllerDelegate {
         }
         controller.dismiss(animated: true, completion: nil)
     }
-    
+  
+    public class func logString() -> String {
+        var logString = ""
+        for log in Logger.appLog {
+            logString.append("\n\(log.message)")
+        }
+        return logString
+    }
+
 }
 
 struct AppLog : Codable {

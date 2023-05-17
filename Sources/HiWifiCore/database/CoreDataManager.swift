@@ -79,10 +79,10 @@ internal class CoreDataManager {
     internal func saveSSIDList(data: [[String:String]]) {
         
         NSLog("save ssid list ...")
-        guard data.count > 0 else { return }
-        
+
         deleteSSIDList()
         
+        guard data.count > 0 else { return }
         let privateContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
         privateContext.parent = persistentContainer.viewContext
         

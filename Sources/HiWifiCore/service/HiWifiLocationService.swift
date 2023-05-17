@@ -31,25 +31,20 @@ internal class HiWifiLocationService {
             getLocationFor(bssid: networkInfo.bssid, ssid: networkInfo.ssid, completion: {ap in
                 
                 if let ap = ap {
-                
                     Logger.log("Location Search...found AP with bssid: \(ap.bssid0 ?? "n/a")")
                     completion(ap.toHiWifiLocation(), nil)
-
 
                 } else {
                     completion(nil, .LocationNotFound)
                 }
-                
             })
-                        
         } else {
             completion(nil, .LocationNotFound)
         }
-        
     }
     
     private func isKnownSSID(_ ssid: String, _ includeSSIDList: Bool = true) -> Bool {
-        return ssidList.isEmpty || self.ssidList.contains(ssid)
+        return self.ssidList.contains(ssid)
     }
     
     private func getLocationFor(bssid: String, ssid: String, newGroup: Bool = false, completion: @escaping (_ accessPointObject: AccessPointObject?) -> Void) {
@@ -65,13 +60,13 @@ internal class HiWifiLocationService {
             
         } else if NetworkHelper.isConnectedToNetwork() {
             
-            self.service.getDeviceLocation(completion: { location in
+            LocationManager.shared.getLocation { location, error in
                 
-                if location == nil {
+                if location == nil || error != nil {
                     Logger.log("getDeviceLocation failed!")
                     completion(nil)
                 } else {
-                    AccessPointFetcher(bssid: bssid, ssid: ssid, latitude: location!.latitude.description, longitude: location!.longitude.description).execute(completion: { success in
+                    AccessPointFetcher(bssid: bssid, ssid: ssid, latitude: location!.coordinate.latitude.description, longitude: location!.coordinate.longitude.description).execute(completion: { success in
                                         
                         Logger.log("Ap not found in cache...call api")
                         if success {
@@ -83,7 +78,7 @@ internal class HiWifiLocationService {
                         }
                     })
                 }
-            })
+            }
         } else {
             completion(nil)
         }
