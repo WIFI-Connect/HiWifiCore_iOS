@@ -150,6 +150,9 @@ internal class AccessPointFetcher {
     request.httpBody = jsonData
     
     URLCache.shared.removeAllCachedResponses()
+
+    Logger.log("AccessPointFetcher request...")
+
     let task = URLSession.shared.dataTask(with: request) { ( data, response, error) in
         
         guard let dataResponse = data, error == nil else {
